@@ -15,7 +15,8 @@ func main() {
 	r.HandleFunc("/healthcheck", healthcheck.HandlerHealthcheck)
 
 	// Java Endpoints
-	java.AppendJavaDownloadMetadataRouter(r)
+	java.AppendJavaDownloadTopLevelMetadataRouter(r)
+	java.AppendJavaDownloadArtifactRouter(r)
 
 	http.ListenAndServe(":8080", r)
 }

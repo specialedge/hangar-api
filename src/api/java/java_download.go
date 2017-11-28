@@ -2,41 +2,64 @@ package java
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/cavaliercoder/grab"
 	"github.com/gorilla/mux"
 )
 
-func AppendJavaDownloadMetadataRouter(r *mux.Router) {
+// AppendJavaDownloadTopLevelMetadataRouter : In Java, Artifacts are saved with xml metadata at the artifact level as well as the version level
+func AppendJavaDownloadTopLevelMetadataRouter(r *mux.Router) {
 	// Hmm, still missing the type group :  (?:\\.){type:\\w*}
 	r.HandleFunc("/{group:.+}/{artifact:.+}/maven-metadata.xml", javaDownloadMetadataHandler)
 }
 
+// AppendJavaDownloadArtifactRouter : This is the main endpoint for retrieving java artifacts through Hangar.
+func AppendJavaDownloadArtifactRouter(r *mux.Router) {
+	r.HandleFunc("/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}", javaDownloadArtifactRouter)
+}
+
 func javaDownloadMetadataHandler(w http.ResponseWriter, r *http.Request) {
 
-	vars := mux.Vars(r)
+	artifact := RequestToArtifact(r)
+	artifact.Filename = "maven-metadata.xml"
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 
-	io.WriteString(w, `{"metadata": {"group": "`+vars["group"]+`", "artifact": "`+vars["artifact"]+`"}}`)
-	javaDownloadAction()
+	fmt.Println("Metadata Download : JAVA, G(" + artifact.Group + ") A(" + artifact.Artifact + ") F(" + artifact.Filename + ")")
 }
 
-func javaDownloadAction() {
+func javaDownloadArtifactRouter(w http.ResponseWriter, r *http.Request) {
+
+	artifact := RequestToArtifact(r)
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+
+	fmt.Println("Artifact Download : JAVA, G(" + artifact.Group + ") A(" + artifact.Artifact + ") V(" + artifact.Version + ") F(" + artifact.Filename + ")")
+	javaDownloadAction(artifact)
+}
+
+func javaDownloadAction(ja Artifact) {
 
 	// create a custom client
 	client := grab.NewClient()
 	client.UserAgent = "Hangar v0.0.1"
 
 	// Need to add this as a proxy configuration rather than having it hardcoded.
-	mavenCentral := "https://repo.maven.apache.org/maven2/" + "activemq/activemq-core/3.2/activemq-core-3.2.jar"
+	mavenCentral := "https://repo.maven.apache.org/maven2/" + strings.Replace(ja.Group, ".", "/", -1) + "/" + ja.Artifact + "/" + ja.Version + "/" + ja.Filename
+	storage := filepath.Dir(`F:\Code\specialedge\storage\java\`)
+	path := filepath.Join(storage, strings.Replace(ja.Group, ".", "/", -1)+"/", ja.Artifact, ja.Version, ja.Filename)
+
+	fmt.Println(mavenCentral)
+	fmt.Println(path)
 
 	// create a download request
-	req, err := grab.NewRequest(".", mavenCentral)
+	req, err := grab.NewRequest(path, mavenCentral)
 	if err != nil {
 		panic(err)
 	}
