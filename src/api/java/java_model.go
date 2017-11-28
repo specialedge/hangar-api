@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"../../index"
 	"github.com/gorilla/mux"
 )
 
@@ -13,6 +14,21 @@ type Artifact struct {
 	Artifact string `json:"artifact"`
 	Version  string `json:"version"`
 	Filename string `json:"filename"`
+	Type     string `json:"type"`
+}
+
+func NewJavaFileList() index.FileList {
+
+	types := map[string]bool{
+		"pom":  false,
+		"jar":  false,
+		"sha1": false,
+		"md5":  false,
+	}
+
+	return index.FileList{
+		FileTypes: types,
+	}
 }
 
 // RequestToArtifact : Convert a map of strings into an Artifact.
@@ -27,6 +43,14 @@ func RequestToArtifact(r *http.Request) (ja Artifact) {
 		Group:    strings.Replace(vars["group"], "/", ".", -1),
 		Artifact: vars["artifact"],
 		Version:  vars["version"],
-		Filename: vars["filename"],
+		Filename: vars["filename"] + vars["type"],
+		Type:     strings.Replace(vars["type"], ".", "", -1),
+	}
+}
+
+// GetIdentifier : Return a unique key for this artifact to identify it by
+func (a Artifact) GetIdentifier() index.Identifier {
+	return index.Identifier{
+		Key: strings.Join([]string{"JAVA", a.Group, a.Artifact, a.Version}, ":"),
 	}
 }
