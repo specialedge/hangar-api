@@ -14,12 +14,12 @@ import (
 // AppendJavaDownloadTopLevelMetadataRouter : In Java, Artifacts are saved with xml metadata at the artifact level as well as the version level
 func AppendJavaDownloadTopLevelMetadataRouter(r *mux.Router) {
 	// Hmm, still missing the type group :  (?:\\.){type:\\w*}
-	r.HandleFunc("/{group:.+}/{artifact:.+}/maven-metadata.xml", javaDownloadMetadataHandler)
+	r.HandleFunc("/java/{group:.+}/{artifact:.+}/maven-metadata.xml", javaDownloadMetadataHandler)
 }
 
 // AppendJavaDownloadArtifactRouter : This is the main endpoint for retrieving java artifacts through Hangar.
 func AppendJavaDownloadArtifactRouter(r *mux.Router) {
-	r.HandleFunc("/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}", javaDownloadArtifactRouter)
+	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}", javaDownloadArtifactRouter)
 }
 
 func javaDownloadMetadataHandler(w http.ResponseWriter, r *http.Request) {
@@ -27,21 +27,19 @@ func javaDownloadMetadataHandler(w http.ResponseWriter, r *http.Request) {
 	artifact := RequestToArtifact(r)
 	artifact.Filename = "maven-metadata.xml"
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-
 	fmt.Println("Metadata Download : JAVA, G(" + artifact.Group + ") A(" + artifact.Artifact + ") F(" + artifact.Filename + ")")
 }
 
 func javaDownloadArtifactRouter(w http.ResponseWriter, r *http.Request) {
 
-	artifact := RequestToArtifact(r)
+	ja := RequestToArtifact(r)
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
+	fmt.Println("Artifact Download : JAVA, G(" + ja.Group + ") A(" + ja.Artifact + ") V(" + ja.Version + ") F(" + ja.Filename + ")")
+	javaDownloadAction(ja)
 
-	fmt.Println("Artifact Download : JAVA, G(" + artifact.Group + ") A(" + artifact.Artifact + ") V(" + artifact.Version + ") F(" + artifact.Filename + ")")
-	javaDownloadAction(artifact)
+	storage := filepath.Dir(`F:\Code\specialedge\storage\java\`)
+	path := filepath.Join(storage, strings.Replace(ja.Group, ".", "/", -1)+"/", ja.Artifact, ja.Version, ja.Filename)
+	http.ServeFile(w, r, path)
 }
 
 func javaDownloadAction(ja Artifact) {
@@ -55,6 +53,7 @@ func javaDownloadAction(ja Artifact) {
 	storage := filepath.Dir(`F:\Code\specialedge\storage\java\`)
 	path := filepath.Join(storage, strings.Replace(ja.Group, ".", "/", -1)+"/", ja.Artifact, ja.Version, ja.Filename)
 
+	// Debug Statements
 	fmt.Println(mavenCentral)
 	fmt.Println(path)
 
