@@ -7,22 +7,33 @@ import (
 	"path/filepath"
 	"strings"
 
+	"../../index"
 	"github.com/cavaliercoder/grab"
 	"github.com/gorilla/mux"
 )
 
-// AppendJavaDownloadTopLevelMetadataRouter : In Java, Artifacts are saved with xml metadata at the artifact level as well as the version level
-func AppendJavaDownloadTopLevelMetadataRouter(r *mux.Router) {
+// JavaEndpoints : API for serving Java Requests
+type JavaEndpoints struct {
+	Ind index.Index
+}
+
+// AppendEndpoints : In Java, Artifacts are saved with xml metadata at the artifact level as well as the version level
+func (je JavaEndpoints) AppendEndpoints(r *mux.Router) {
 	// Hmm, still missing the type group :  (?:\\.){type:\\w*}
-	r.HandleFunc("/java/{group:.+}/{artifact:.+}/maven-metadata.xml", javaDownloadMetadataHandler)
+	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.md5|\\.sha1|\\.jar|\\.pom}", je.javaDownloadArtifactRouter)
+	r.HandleFunc("/java/{group:.+}/{artifact:.+}/maven-metadata.xml", je.javaDownloadTopLevelMetadataHandler)
+	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:([.\\d\\.]*\\-SNAPSHOT)+}/maven-metadata.xml{type:((?:\\.)(*:\\w))}", je.javaDownloadMetadataHandler)
 }
 
-// AppendJavaDownloadArtifactRouter : This is the main endpoint for retrieving java artifacts through Hangar.
-func AppendJavaDownloadArtifactRouter(r *mux.Router) {
-	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}", javaDownloadArtifactRouter)
+func (je JavaEndpoints) javaDownloadTopLevelMetadataHandler(w http.ResponseWriter, r *http.Request) {
+
+	artifact := RequestToArtifact(r)
+	artifact.Filename = "maven-metadata.xml"
+
+	fmt.Println("Top Level Metadata Download : JAVA, G(" + artifact.Group + ") A(" + artifact.Artifact + ") F(" + artifact.Filename + ")")
 }
 
-func javaDownloadMetadataHandler(w http.ResponseWriter, r *http.Request) {
+func (je JavaEndpoints) javaDownloadMetadataHandler(w http.ResponseWriter, r *http.Request) {
 
 	artifact := RequestToArtifact(r)
 	artifact.Filename = "maven-metadata.xml"
@@ -30,16 +41,29 @@ func javaDownloadMetadataHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Metadata Download : JAVA, G(" + artifact.Group + ") A(" + artifact.Artifact + ") F(" + artifact.Filename + ")")
 }
 
-func javaDownloadArtifactRouter(w http.ResponseWriter, r *http.Request) {
+func (je JavaEndpoints) javaDownloadArtifactRouter(w http.ResponseWriter, r *http.Request) {
 
 	ja := RequestToArtifact(r)
 
-	fmt.Println("Artifact Download : JAVA, G(" + ja.Group + ") A(" + ja.Artifact + ") V(" + ja.Version + ") F(" + ja.Filename + ")")
-	javaDownloadAction(ja)
+	fmt.Println("Artifact Download : JAVA, G(" + ja.Group + ") A(" + ja.Artifact + ") V(" + ja.Version + ") F(" + ja.Filename + ") T(" + ja.Type + ")")
 
 	storage := filepath.Dir(`F:\Code\specialedge\storage\java\`)
 	path := filepath.Join(storage, strings.Replace(ja.Group, ".", "/", -1)+"/", ja.Artifact, ja.Version, ja.Filename)
-	http.ServeFile(w, r, path)
+
+	// If file exists in index - attempt to serve,
+	if je.Ind.IsDownloadedArtifact(ja.GetIdentifier(), ja.Type) {
+		http.ServeFile(w, r, path)
+	} else {
+		// if it doesn't exist on filesystem, download and serve.
+		javaDownloadAction(ja)
+
+		// Add to the index
+		je.Ind.AddArtifact(ja.GetIdentifier(), NewJavaFileList())
+		je.Ind.AddDownloadedArtifact(ja.GetIdentifier(), ja.Type)
+
+		// Serve the File to the User
+		http.ServeFile(w, r, path)
+	}
 }
 
 func javaDownloadAction(ja Artifact) {
@@ -54,8 +78,8 @@ func javaDownloadAction(ja Artifact) {
 	path := filepath.Join(storage, strings.Replace(ja.Group, ".", "/", -1)+"/", ja.Artifact, ja.Version, ja.Filename)
 
 	// Debug Statements
-	fmt.Println(mavenCentral)
-	fmt.Println(path)
+	//fmt.Println(mavenCentral)
+	//fmt.Println(path)
 
 	// create a download request
 	req, err := grab.NewRequest(path, mavenCentral)
@@ -64,9 +88,10 @@ func javaDownloadAction(ja Artifact) {
 	}
 
 	// start download
-	fmt.Printf("Downloading %v...\n", req.URL())
+	//fmt.Printf("Downloading %v...\n", req.URL())
+	fmt.Println("Artifact Download : JAVA, G(" + ja.Group + ") A(" + ja.Artifact + ") V(" + ja.Version + ") F(" + ja.Filename + ")")
 	resp := client.Do(req)
-	fmt.Printf("  %v\n", resp.HTTPResponse.Status)
+	//fmt.Printf("  %v\n", resp.HTTPResponse.Status)
 
 	// set expected file size if known
 	//req.Size = 1024
@@ -87,5 +112,5 @@ func javaDownloadAction(ja Artifact) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Download saved to ./%v \n", resp.Filename)
+	//fmt.Printf("Download saved to ./%v \n", resp.Filename)
 }
