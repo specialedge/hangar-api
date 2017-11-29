@@ -6,6 +6,7 @@ import (
 	"./api/healthcheck"
 	"./api/java"
 	"./index"
+	"./storage"
 	"github.com/gorilla/mux"
 )
 
@@ -15,14 +16,19 @@ func main() {
 	// Create index to be used by all endpoints.
 	ind := index.NewInMemory()
 
+	// Create storage to be used by all endpoints.
+	stor := storage.NewStorageLocal()
+
 	// Initial admin & service endpoints
 	r.HandleFunc("/healthcheck", healthcheck.HandlerHealthcheck)
 
 	// Java Endpoints
 	javaEndpoints := java.JavaEndpoints{
-		Ind: ind,
+		ArtifactIndex:   ind,
+		ArtifactStorage: stor,
 	}
 
+	// Add all the endpoints for the Java API
 	javaEndpoints.AppendEndpoints(r)
 
 	http.ListenAndServe(":8080", r)

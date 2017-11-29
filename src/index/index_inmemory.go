@@ -1,31 +1,41 @@
 package index
 
+import (
+	"strconv"
+
+	"../events"
+)
+
 // Note - maps are not safe for concurrent use (https://golang.org/doc/faq#atomic_maps)
 type inMemory struct {
-	artifacts map[Identifier]FileList
+	artifacts map[string]FileList
 }
 
 func NewInMemory() Index {
 	return &inMemory{
-		artifacts: make(map[Identifier]FileList),
+		artifacts: make(map[string]FileList),
 	}
 }
 
-// IsArtifact : Does this artifact exist in the system?
+// IsArtifact : Does this artifact identifier exist in the system?
 func (i inMemory) IsArtifact(key Identifier) bool {
-	_, ok := i.artifacts[key]
+	_, ok := i.artifacts[key.Key]
 	return ok
+}
+
+// AddArtifact : Add an identifier for this artifact.
+func (i inMemory) AddArtifact(key Identifier, filetypes FileList) {
+	i.artifacts[key.Key] = filetypes
 }
 
 // IsDownloadedArtifact : Does this artifact exist in the system?
 func (i inMemory) IsDownloadedArtifact(key Identifier, filetype string) bool {
-	return i.artifacts[key].FileTypes[filetype]
+	events.Debug("hangar.index.isDownloadedArtifact", key.Key+":"+strconv.FormatBool(i.artifacts[key.Key].FileTypes[filetype]))
+	return i.artifacts[key.Key].FileTypes[filetype]
 }
 
-func (i inMemory) AddArtifact(key Identifier, filetypes FileList) {
-	i.artifacts[key] = filetypes
-}
-
+// AddDownloadedArtifact : Mark this artifact as downloaded.
 func (i inMemory) AddDownloadedArtifact(key Identifier, filetype string) {
-	i.artifacts[key].FileTypes[filetype] = true
+	events.Debug("hangar.index.AddDownloadedArtifact", key.Key+":"+filetype)
+	i.artifacts[key.Key].FileTypes[filetype] = true
 }
