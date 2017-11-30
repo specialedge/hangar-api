@@ -14,6 +14,7 @@ type storageLocal struct {
 	Path string
 }
 
+// NewStorageLocal : Creates a new Storage module which uses the local disk.
 func NewStorageLocal() Storage {
 	return &storageLocal{
 		Path: `F:\Code\specialedge\storage\java\`,
@@ -43,6 +44,7 @@ func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier) {
 	}
 }
 
+// ServeFile : Requests that the storage serve the user with the artifact.
 func (s storageLocal) ServeFile(w http.ResponseWriter, r *http.Request, id Identifier) {
 	log.WithFields(log.Fields{"module": "storage", "action": "ServeFile"}).Debug(id.Key)
 	http.ServeFile(w, r, filepath.Join(s.Path, id.Key))
