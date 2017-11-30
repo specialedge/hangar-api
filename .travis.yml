@@ -9,6 +9,7 @@ install:
   - go get github.com/gorilla/mux
   - go get github.com/cavaliercoder/grab
   - go get github.com/sirupsen/logrus
+  - go get github.com/golang/lint/golint                        
 
 script:
  - go test -v ./...    
