@@ -18,6 +18,8 @@ type Artifact struct {
 	Checksum string `json:"checksum"`
 }
 
+// NewJavaFileList : Generates a new list of acceptable files to store for this
+// type of endpoint.
 func NewJavaFileList() index.FileList {
 
 	types := map[string]bool{
