@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strings"
 
-	"../../events"
-	"../../index"
-	"../../storage"
 	"github.com/gorilla/mux"
+	"github.com/specialedge/hangar-api/events"
+	"github.com/specialedge/hangar-api/index"
+	"github.com/specialedge/hangar-api/storage"
 )
 
 // Endpoints : API for serving Java Requests

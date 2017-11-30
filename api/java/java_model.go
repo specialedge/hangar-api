@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"../../index"
-	"../../storage"
+	"github.com/specialedge/hangar-api/index"
+	"github.com/specialedge/hangar-api/storage"
 )
 
 // Artifact : Represents the metadata for a Java Artifact

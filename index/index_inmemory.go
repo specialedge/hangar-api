@@ -3,7 +3,7 @@ package index
 import (
 	"strconv"
 
-	"../events"
+	"github.com/specialedge/hangar-api/events"
 )
 
 // Note - maps are not safe for concurrent use (https://golang.org/doc/faq#atomic_maps)

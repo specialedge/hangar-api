@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"../events"
 	"github.com/cavaliercoder/grab"
+	"github.com/specialedge/hangar-api/events"
 )
 
 type storageLocal struct {

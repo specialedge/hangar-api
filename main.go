@@ -3,11 +3,11 @@ package main
 import (
 	"net/http"
 
-	"./api/healthcheck"
-	"./api/java"
-	"./index"
-	"./storage"
 	"github.com/gorilla/mux"
+	"github.com/specialedge/hangar-api/api/healthcheck"
+	"github.com/specialedge/hangar-api/api/java"
+	"github.com/specialedge/hangar-api/index"
+	"github.com/specialedge/hangar-api/storage"
 )
 
 func main() {
