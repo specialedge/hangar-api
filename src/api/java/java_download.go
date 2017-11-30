@@ -10,55 +10,37 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// JavaEndpoints : API for serving Java Requests
-type JavaEndpoints struct {
+// Endpoints : API for serving Java Requests
+type Endpoints struct {
 	ArtifactIndex   index.Index
 	ArtifactStorage storage.Storage
 }
 
 // AppendEndpoints : In Java, Artifacts are saved with xml metadata at the artifact level as well as the version level
-func (je JavaEndpoints) AppendEndpoints(r *mux.Router) {
+func (je Endpoints) AppendEndpoints(r *mux.Router) {
 	// Hmm, still missing the type group :  (?:\\.){type:\\w*}
 	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.jar|\\.pom}", je.javaDownloadArtifactRouter)
 	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.jar|\\.pom}{checksum:\\.md5|\\.sha1}", je.javaDownloadArtifactChecksumRouter)
-	// r.HandleFunc("/java/{group:.+}/{artifact:.+}/maven-metadata.xml", je.javaDownloadTopLevelMetadataHandler)
-	// r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:([.\\d\\.]*\\-SNAPSHOT)+}/maven-metadata.xml{type:((?:\\.)(*:\\w))}", je.javaDownloadMetadataHandler)
 }
-
-// func (je JavaEndpoints) javaDownloadTopLevelMetadataHandler(w http.ResponseWriter, r *http.Request) {
-
-// 	artifact := RequestToArtifact(r)
-// 	artifact.Filename = "maven-metadata.xml"
-
-// 	fmt.Println("Top Level Metadata Download : JAVA, G(" + artifact.Group + ") A(" + artifact.Artifact + ") F(" + artifact.Filename + ")")
-// }
-
-// func (je JavaEndpoints) javaDownloadMetadataHandler(w http.ResponseWriter, r *http.Request) {
-
-// 	artifact := RequestToArtifact(r)
-// 	artifact.Filename = "maven-metadata.xml"
-
-// 	fmt.Println("Metadata Download : JAVA, G(" + artifact.Group + ") A(" + artifact.Artifact + ") F(" + artifact.Filename + ")")
-// }
 
 // For checksums, we want to attempt to download something from the proxy - but if it doesn't exist, it's probably
 // better if we generate a checksum using the artifact we've got as some files don't have a checksum.
 // TODO: Maybe we make this choice configurable?
-func (je JavaEndpoints) javaDownloadArtifactChecksumRouter(w http.ResponseWriter, r *http.Request) {
+func (je Endpoints) javaDownloadArtifactChecksumRouter(w http.ResponseWriter, r *http.Request) {
 
-	ja := RequestToArtifact(r)
+	ja := RequestToArtifact(mux.Vars(r))
 	events.Info("hangar.request.java.downloadChecksum", ja.ToString())
 	je.javaProxiedArtifactAction(w, r, ja)
 }
 
-func (je JavaEndpoints) javaDownloadArtifactRouter(w http.ResponseWriter, r *http.Request) {
+func (je Endpoints) javaDownloadArtifactRouter(w http.ResponseWriter, r *http.Request) {
 
-	ja := RequestToArtifact(r)
+	ja := RequestToArtifact(mux.Vars(r))
 	events.Info("hangar.request.java.downloadArtifact", ja.ToString())
 	je.javaProxiedArtifactAction(w, r, ja)
 }
 
-func (je JavaEndpoints) javaProxiedArtifactAction(w http.ResponseWriter, r *http.Request, ja Artifact) {
+func (je Endpoints) javaProxiedArtifactAction(w http.ResponseWriter, r *http.Request, ja Artifact) {
 
 	// If file exists in index - attempt to serve,
 	if !je.ArtifactIndex.IsDownloadedArtifact(ja.GetIdentifier(), ja.Type) {

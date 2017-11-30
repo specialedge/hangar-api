@@ -23,7 +23,7 @@ func main() {
 	r.HandleFunc("/healthcheck", healthcheck.HandlerHealthcheck)
 
 	// Java Endpoints
-	javaEndpoints := java.JavaEndpoints{
+	javaEndpoints := java.Endpoints{
 		ArtifactIndex:   ind,
 		ArtifactStorage: stor,
 	}
