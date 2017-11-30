@@ -2,6 +2,8 @@ language: go
 
 go:
     - 1.8
+	
+go_import_path: github.com/specialedge/hangar-api
 
 script:
  - go test -v ./...    
