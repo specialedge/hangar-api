@@ -1,13 +1,11 @@
 package java
 
 import (
-	"net/http"
 	"path/filepath"
 	"strings"
 
 	"../../index"
 	"../../storage"
-	"github.com/gorilla/mux"
 )
 
 // Artifact : Represents the metadata for a Java Artifact
@@ -37,10 +35,7 @@ func NewJavaFileList() index.FileList {
 }
 
 // RequestToArtifact : Convert a map of strings into an Artifact.
-func RequestToArtifact(r *http.Request) (ja Artifact) {
-
-	// Grab the variables from the request.
-	vars := mux.Vars(r)
+func RequestToArtifact(vars map[string]string) (ja Artifact) {
 
 	// The variables for the group might be slash-delimited, we need them
 	// to be dot-delimited to be accurate in Java terminology.
