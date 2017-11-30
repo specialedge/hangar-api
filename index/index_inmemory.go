@@ -3,7 +3,7 @@ package index
 import (
 	"strconv"
 
-	"github.com/specialedge/hangar-api/events"
+	log "github.com/sirupsen/logrus"
 )
 
 // Note - maps are not safe for concurrent use (https://golang.org/doc/faq#atomic_maps)
@@ -30,12 +30,12 @@ func (i inMemory) AddArtifact(key Identifier, filetypes FileList) {
 
 // IsDownloadedArtifact : Does this artifact exist in the system?
 func (i inMemory) IsDownloadedArtifact(key Identifier, filetype string) bool {
-	events.Debug("hangar.index.isDownloadedArtifact", key.Key+":"+strconv.FormatBool(i.artifacts[key.Key].FileTypes[filetype]))
+	log.WithFields(log.Fields{"module": "index", "action": "IsDownloadedArtifact"}).Debug(key.Key + " : " + strconv.FormatBool(i.artifacts[key.Key].FileTypes[filetype]))
 	return i.artifacts[key.Key].FileTypes[filetype]
 }
 
 // AddDownloadedArtifact : Mark this artifact as downloaded.
 func (i inMemory) AddDownloadedArtifact(key Identifier, filetype string) {
-	events.Debug("hangar.index.AddDownloadedArtifact", key.Key+":"+filetype)
+	log.WithFields(log.Fields{"module": "index", "action": "AddDownloadedArtifact"}).Debug(key.Key + " : " + filetype)
 	i.artifacts[key.Key].FileTypes[filetype] = true
 }

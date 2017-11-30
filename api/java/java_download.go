@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/specialedge/hangar-api/events"
+	log "github.com/sirupsen/logrus"
 	"github.com/specialedge/hangar-api/index"
 	"github.com/specialedge/hangar-api/storage"
 )
@@ -29,14 +29,14 @@ func (je Endpoints) AppendEndpoints(r *mux.Router) {
 func (je Endpoints) javaDownloadArtifactChecksumRouter(w http.ResponseWriter, r *http.Request) {
 
 	ja := RequestToArtifact(mux.Vars(r))
-	events.Info("hangar.request.java.downloadChecksum", ja.ToString())
+	log.WithFields(log.Fields{"module": "api", "action": "downloadChecksum"}).Info(ja.ToString())
 	je.javaProxiedArtifactAction(w, r, ja)
 }
 
 func (je Endpoints) javaDownloadArtifactRouter(w http.ResponseWriter, r *http.Request) {
 
 	ja := RequestToArtifact(mux.Vars(r))
-	events.Info("hangar.request.java.downloadArtifact", ja.ToString())
+	log.WithFields(log.Fields{"module": "api", "action": "downloadArtifact"}).Info(ja.ToString())
 	je.javaProxiedArtifactAction(w, r, ja)
 }
 
@@ -44,8 +44,6 @@ func (je Endpoints) javaProxiedArtifactAction(w http.ResponseWriter, r *http.Req
 
 	// If file exists in index - attempt to serve,
 	if !je.ArtifactIndex.IsDownloadedArtifact(ja.GetIdentifier(), ja.Type) {
-
-		events.Debug("hangar.request.java.download.ifIndex", ja.Type)
 
 		mavenCentral := "https://repo.maven.apache.org/maven2/" + strings.Replace(ja.Group, ".", "/", -1) + "/" + ja.Artifact + "/" + ja.Version + "/" + ja.Filename
 		je.ArtifactStorage.DownloadArtifactToStorage(mavenCentral, ja.GetStorageIdentifier())

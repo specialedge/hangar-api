@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/cavaliercoder/grab"
-	"github.com/specialedge/hangar-api/events"
+	log "github.com/sirupsen/logrus"
 )
 
 type storageLocal struct {
@@ -33,7 +33,7 @@ func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier) {
 		panic(err)
 	}
 
-	events.Debug("hangar.storage.download", uri)
+	log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Debug(uri)
 	resp := client.Do(req)
 
 	// check for errors
@@ -44,6 +44,6 @@ func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier) {
 }
 
 func (s storageLocal) ServeFile(w http.ResponseWriter, r *http.Request, id Identifier) {
-	events.Debug("hangar.storage.serve", id.Key)
+	log.WithFields(log.Fields{"module": "storage", "action": "ServeFile"}).Debug(id.Key)
 	http.ServeFile(w, r, filepath.Join(s.Path, id.Key))
 }
