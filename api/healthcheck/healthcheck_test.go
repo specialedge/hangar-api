@@ -1,4 +1,4 @@
-package api
+package healthcheck
 
 import (
 	"net/http"
@@ -9,14 +9,14 @@ import (
 func TestHealthCheckHandler(t *testing.T) {
 	// Create a request to pass to our handler. We don't have any query parameters for now, so we'll
 	// pass 'nil' as the third parameter.
-	req, err := http.NewRequest("GET", "/health-check", nil)
+	req, err := http.NewRequest("GET", "/healthcheck", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(healthcheckHandler)
+	handler := http.HandlerFunc(HandlerHealthcheck)
 
 	// Our handlers satisfy http.Handler, so we can call their ServeHTTP method
 	// directly and pass in our Request and ResponseRecorder.
