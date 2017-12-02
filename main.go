@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -11,6 +13,14 @@ import (
 )
 
 func main() {
+
+	// Create startup message to welcome the user.
+	dat, err := ioutil.ReadFile("startup_message.txt")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Print(string(dat))
+
 	r := mux.NewRouter()
 
 	// Create index to be used by all endpoints.
