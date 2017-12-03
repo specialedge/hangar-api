@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
 	"net/http"
 
+	figure "github.com/common-nighthawk/go-figure"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"github.com/specialedge/hangar-api/api/healthcheck"
 	"github.com/specialedge/hangar-api/api/java"
 	"github.com/specialedge/hangar-api/index"
@@ -15,11 +15,12 @@ import (
 func main() {
 
 	// Create startup message to welcome the user.
-	dat, err := ioutil.ReadFile("startup_message.txt")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Print(string(dat))
+	startUpMessage := figure.NewFigure("hangar-api", "smslant", true)
+	startUpMessage.Print()
+	log.WithFields(log.Fields{
+		"module": "main",
+		"action": "PrintStartUpMessage",
+	}).Info("Running")
 
 	r := mux.NewRouter()
 
