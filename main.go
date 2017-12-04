@@ -3,7 +3,9 @@ package main
 import (
 	"net/http"
 
+	figure "github.com/common-nighthawk/go-figure"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"github.com/specialedge/hangar-api/api/healthcheck"
 	"github.com/specialedge/hangar-api/api/java"
 	"github.com/specialedge/hangar-api/index"
@@ -11,6 +13,15 @@ import (
 )
 
 func main() {
+
+	// Create startup message to welcome the user.
+	startUpMessage := figure.NewFigure("hangar-api", "smslant", true)
+	startUpMessage.Print()
+	log.WithFields(log.Fields{
+		"module": "main",
+		"action": "PrintStartUpMessage",
+	}).Info("Running")
+
 	r := mux.NewRouter()
 
 	// Create index to be used by all endpoints.
