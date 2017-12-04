@@ -9,7 +9,8 @@ install:
   - go get github.com/gorilla/mux
   - go get github.com/cavaliercoder/grab
   - go get github.com/sirupsen/logrus
-  - go get github.com/golang/lint/golint                        
+  - go get github.com/golang/lint/golint 
+  - go get github.com/common-nighthawk/go-figure                       
 
 script:
  - go test -v ./...    
