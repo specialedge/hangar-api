@@ -11,4 +11,5 @@ type Identifier struct {
 type Storage interface {
 	DownloadArtifactToStorage(uri string, id Identifier)
 	ServeFile(w http.ResponseWriter, r *http.Request, id Identifier)
+	GetArtifacts() []Identifier
 }

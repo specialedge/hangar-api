@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/cavaliercoder/grab"
 	log "github.com/sirupsen/logrus"
@@ -48,4 +49,25 @@ func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier) {
 func (s storageLocal) ServeFile(w http.ResponseWriter, r *http.Request, id Identifier) {
 	log.WithFields(log.Fields{"module": "storage", "action": "ServeFile"}).Debug(id.Key)
 	http.ServeFile(w, r, filepath.Join(s.Path, id.Key))
+}
+
+func (s storageLocal) GetArtifacts() []Identifier {
+	fileList := []Identifier{}
+
+	filepath.Walk(s.Path, func(path string, f os.FileInfo, err error) error {
+		if !f.IsDir() {
+			base := strings.Replace(path, s.Path, "", 1)
+			fileList = append(fileList, Identifier{
+				Key: strings.Replace(base, "\\", "/", -1),
+			})
+		}
+		return nil
+	})
+
+	for _, file := range fileList {
+		fmt.Println(file)
+	}
+
+	return fileList
+
 }

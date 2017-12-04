@@ -30,6 +30,7 @@ func main() {
 
 	// Add all the endpoints for the Java API
 	javaEndpoints.AppendEndpoints(r)
+	javaEndpoints.ReIndex()
 
 	http.ListenAndServe(":8080", r)
 }

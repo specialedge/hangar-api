@@ -58,3 +58,9 @@ func (je Endpoints) javaProxiedArtifactAction(w http.ResponseWriter, r *http.Req
 	// Serve the File to the User
 	je.ArtifactStorage.ServeFile(w, r, ja.GetStorageIdentifier())
 }
+
+// ReIndex : Has the index populate itself from the storage using the model for Java Artifacts
+func (je Endpoints) ReIndex() {
+	je.ArtifactStorage.GetArtifacts()
+
+}

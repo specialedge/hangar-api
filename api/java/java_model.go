@@ -51,6 +51,18 @@ func RequestToArtifact(vars map[string]string) (ja Artifact) {
 	}
 }
 
+// StorageIdentifierToArtifact : Convert a storage identifier into an Artifact.
+// func StorageIdentifierToArtifact(storage.Identifier) (ja Artifact) {
+// 	// return Artifact{
+// 	// 	Group:    strings.Replace(vars["group"], "/", ".", -1),
+// 	// 	Artifact: vars["artifact"],
+// 	// 	Version:  vars["version"],
+// 	// 	Filename: vars["filename"] + vars["type"] + vars["checksum"],
+// 	// 	Type:     strings.Replace(vars["type"], ".", "", -1) + vars["checksum"],
+// 	// 	Checksum: strings.Replace(vars["checksum"], ".", "", -1),
+// 	// }
+// }
+
 // GetIdentifier : Return a unique key for this artifact to identify it by
 func (a Artifact) GetIdentifier() index.Identifier {
 	return index.Identifier{
