@@ -13,5 +13,5 @@ install:
   - go get github.com/common-nighthawk/go-figure                       
 
 script:
- - go test -v ./...    
- - golint -set_exit_status $(go list ./...) 
+ - go test -v $(go list ./... | grep -v /vendor/)
+ - golint -set_exit_status $(go list ./... | grep -v /vendor/) 
