@@ -52,16 +52,45 @@ func RequestToArtifact(vars map[string]string) (ja Artifact) {
 }
 
 // StorageIdentifierToArtifact : Convert a storage identifier into an Artifact.
-// func StorageIdentifierToArtifact(storage.Identifier) (ja Artifact) {
-// 	// return Artifact{
-// 	// 	Group:    strings.Replace(vars["group"], "/", ".", -1),
-// 	// 	Artifact: vars["artifact"],
-// 	// 	Version:  vars["version"],
-// 	// 	Filename: vars["filename"] + vars["type"] + vars["checksum"],
-// 	// 	Type:     strings.Replace(vars["type"], ".", "", -1) + vars["checksum"],
-// 	// 	Checksum: strings.Replace(vars["checksum"], ".", "", -1),
-// 	// }
-// }
+func StorageIdentifierToArtifact(id storage.Identifier) (ja Artifact) {
+
+	// Split the path into a set of
+	a := strings.Split(id.Key, id.Separator)
+
+	// General GAV parameters
+	filename, a := a[len(a)-1], a[:len(a)-1]
+	version, a := a[len(a)-1], a[:len(a)-1]
+	artifact, a := a[len(a)-1], a[:len(a)-1]
+	group := strings.Join(a, ".")
+
+	// Attempted this using string manipulation but couldn't - got scuppered
+	// by some weird version numbers (like 1 which got in the way of sha1)
+	// This seems a more robust way.
+	typeVar := ""
+	checksum := ""
+
+	idents := NewJavaFileList().FileTypes
+
+	for filetype := range idents {
+		if strings.HasSuffix(filename, filetype) {
+			checksumSlice := strings.Split(filetype, ".")
+			typeVar = checksumSlice[0]
+			if len(checksumSlice) > 1 {
+				checksum = checksumSlice[1]
+			}
+			break
+		}
+	}
+
+	return Artifact{
+		Group:    group,
+		Artifact: artifact,
+		Version:  version,
+		Filename: filename,
+		Type:     typeVar,
+		Checksum: checksum,
+	}
+}
 
 // GetIdentifier : Return a unique key for this artifact to identify it by
 func (a Artifact) GetIdentifier() index.Identifier {
@@ -73,7 +102,8 @@ func (a Artifact) GetIdentifier() index.Identifier {
 // GetStorageIdentifier : At this point, we return a slash-delimited "path" for the Artifact
 func (a Artifact) GetStorageIdentifier() storage.Identifier {
 	return storage.Identifier{
-		Key: filepath.Join(strings.Replace(a.Group, ".", "/", -1)+"/", a.Artifact, a.Version, a.Filename),
+		Key:       filepath.Join(strings.Replace(a.Group, ".", "/", -1)+"/", a.Artifact, a.Version, a.Filename),
+		Separator: "/",
 	}
 }
 

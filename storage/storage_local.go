@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/cavaliercoder/grab"
@@ -51,6 +52,7 @@ func (s storageLocal) ServeFile(w http.ResponseWriter, r *http.Request, id Ident
 	http.ServeFile(w, r, filepath.Join(s.Path, id.Key))
 }
 
+// GetArtifacts : Returns an array of Storage Identifiers that
 func (s storageLocal) GetArtifacts() []Identifier {
 	fileList := []Identifier{}
 
@@ -58,16 +60,13 @@ func (s storageLocal) GetArtifacts() []Identifier {
 		if !f.IsDir() {
 			base := strings.Replace(path, s.Path, "", 1)
 			fileList = append(fileList, Identifier{
-				Key: strings.Replace(base, "\\", "/", -1),
+				Key:       strings.Replace(base, "\\", "/", -1),
+				Separator: "/",
 			})
 		}
 		return nil
 	})
 
-	for _, file := range fileList {
-		fmt.Println(file)
-	}
-
+	log.WithFields(log.Fields{"module": "storage", "action": "GetArtifacts"}).Info(strconv.Itoa(len(fileList)) + " entities retrieved from storage...")
 	return fileList
-
 }
