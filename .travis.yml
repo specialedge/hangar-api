@@ -10,5 +10,5 @@ install:
   - go get github.com/golang/lint/golint 
 
 script:
- - go test -v ./...    
- - golint -set_exit_status $(go list ./...) 
+ - go test -v $(go list ./... | grep -v /vendor/)
+ - golint -set_exit_status $(go list ./... | grep -v /vendor/) 
