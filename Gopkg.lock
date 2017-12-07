@@ -20,6 +20,12 @@
   version = "v1.1"
 
 [[projects]]
+  name = "github.com/gorilla/handlers"
+  packages = ["."]
+  revision = "90663712d74cb411cbef281bc1e08c19d1a76145"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
   revision = "7f08801859139f86dfafd1c296e2cba9a80d292e"
@@ -28,8 +34,8 @@
 [[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
-  revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
-  version = "v1.0.3"
+  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
+  version = "v1.0.4"
 
 [[projects]]
   branch = "master"
@@ -41,11 +47,11 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix","windows"]
-  revision = "8b4580aae2a0dd0c231a45d3ccb8434ff533b840"
+  revision = "a0f4589a76f1f83070cb9e5613809e1d07b97c13"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5ce374ac28f7a1e9d08863fcf69e86bd08d40200f5c77bb348bf46e9d3bf430f"
+  inputs-digest = "4aec71631ee2b33a4ab9254488160d7696522e3c09eda8640c3d044c88eccf08"
   solver-name = "gps-cdcl"
   solver-version = 1
