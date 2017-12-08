@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	figure "github.com/common-nighthawk/go-figure"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/specialedge/hangar-api/api/healthcheck"
@@ -42,5 +43,6 @@ func main() {
 	// Add all the endpoints for the Java API
 	javaEndpoints.AppendEndpoints(r)
 
-	http.ListenAndServe(":8080", r)
+	// Applying default CORS support
+	http.ListenAndServe(":8080", handlers.CORS()(r))
 }
