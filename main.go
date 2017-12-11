@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	figure "github.com/common-nighthawk/go-figure"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/specialedge/hangar-api/api/healthcheck"
@@ -45,5 +46,6 @@ func main() {
 	// Load all the current files in the directory as Java Artifacts.
 	javaEndpoints.ReIndex()
 
-	http.ListenAndServe(":8080", r)
+  // Serve on 8080 with CORS support.
+	http.ListenAndServe(":8080", handlers.CORS()(r))
 }
