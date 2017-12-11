@@ -54,8 +54,11 @@ func RequestToArtifact(vars map[string]string) (ja Artifact) {
 // StorageIdentifierToArtifact : Convert a storage identifier into an Artifact.
 func StorageIdentifierToArtifact(id storage.Identifier) (ja Artifact) {
 
+	// Remove the initial slash if there is one (by mistake)
+	sanitized := strings.TrimPrefix(id.Key, id.Separator)
+
 	// Split the path into a set of
-	a := strings.Split(id.Key, id.Separator)
+	a := strings.Split(sanitized, id.Separator)
 
 	// General GAV parameters
 	filename, a := a[len(a)-1], a[:len(a)-1]
@@ -76,6 +79,7 @@ func StorageIdentifierToArtifact(id storage.Identifier) (ja Artifact) {
 			checksumSlice := strings.Split(filetype, ".")
 			typeVar = checksumSlice[0]
 			if len(checksumSlice) > 1 {
+				typeVar = typeVar + "." + checksumSlice[1]
 				checksum = checksumSlice[1]
 			}
 			break
@@ -111,7 +115,7 @@ func (a Artifact) GetStorageIdentifier() storage.Identifier {
 func (a Artifact) ToString() string {
 	output := "G(" + a.Group + ") A(" + a.Artifact + ") V(" + a.Version + ") F(" + a.Filename + ") T(" + a.Type + ")"
 	if len(a.Checksum) > 0 {
-		output += ", C(" + a.Checksum + ")"
+		output += " C(" + a.Checksum + ")"
 	}
 	return output
 }

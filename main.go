@@ -41,6 +41,8 @@ func main() {
 
 	// Add all the endpoints for the Java API
 	javaEndpoints.AppendEndpoints(r)
+
+	// Load all the current files in the directory as Java Artifacts.
 	javaEndpoints.ReIndex()
 
 	http.ListenAndServe(":8080", r)

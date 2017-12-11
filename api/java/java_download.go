@@ -74,7 +74,5 @@ func addJavaArtifactToIndex(je Endpoints, ja Artifact) {
 		je.ArtifactIndex.AddArtifact(ja.GetIdentifier(), NewJavaFileList())
 	}
 
-	log.Info(ja.ToString())
-
 	je.ArtifactIndex.AddDownloadedArtifact(ja.GetIdentifier(), ja.Type)
 }
