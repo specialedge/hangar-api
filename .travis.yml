@@ -1,4 +1,6 @@
 language: go
+services: 
+- docker
 
 go:
  - 1.8
@@ -11,4 +13,17 @@ install:
 
 script:
  - go test -v $(go list ./... | grep -v /vendor/)
- - golint -set_exit_status $(go list ./... | grep -v /vendor/) 
+ - golint -set_exit_status $(go list ./... | grep -v /vendor/)
+ - go build
+
+after_success: 
+- test $TRAVIS_PULL_REQUEST = false
+  && export REPO=specialedge/hangar-api
+  && docker build -t $REPO:$COMMIT --build-arg GITSHA=$TRAVIS_COMMIT --build-arg BUILDDATE="`date`" .
+  && docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
+  && if [[ "$TRAVIS_BRANCH" == "master" ]]; then docker tag $REPO:$COMMIT $REPO:latest; else docker tag $REPO:$COMMIT $REPO:$TRAVIS_BRANCH; fi
+
+env:
+  global:
+  - COMMIT=${TRAVIS_COMMIT::8}
+
