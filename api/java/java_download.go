@@ -19,7 +19,6 @@ type Endpoints struct {
 
 // AppendEndpoints : In Java, Artifacts are saved with xml metadata at the artifact level as well as the version level
 func (je Endpoints) AppendEndpoints(r *mux.Router) {
-	// Hmm, still missing the type group :  (?:\\.){type:\\w*}
 	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.jar|\\.pom}", je.javaDownloadArtifactRouter)
 	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.jar|\\.pom}{checksum:\\.md5|\\.sha1}", je.javaDownloadArtifactChecksumRouter)
 }

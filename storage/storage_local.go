@@ -22,6 +22,7 @@ func NewStorageLocal() Storage {
 
 	// If the path doesn't exist, create it.
 	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.WithFields(log.Fields{"module": "storage", "action": "NewStorageLocal"}).Info("Creating Empty Directory : " + path)
 		os.Mkdir(path, 0755)
 	}
 
@@ -59,7 +60,7 @@ func (s storageLocal) ServeFile(w http.ResponseWriter, r *http.Request, id Ident
 	http.ServeFile(w, r, filepath.Join(s.Path, id.Key))
 }
 
-// GetArtifacts : Returns an array of Storage Identifiers that
+// GetArtifacts : Returns an array of Storage Identifiers by traversing the local storage filesystem.
 func (s storageLocal) GetArtifacts() []Identifier {
 	fileList := []Identifier{}
 

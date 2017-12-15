@@ -10,12 +10,12 @@ import (
 
 // Artifact : Represents the metadata for a Java Artifact
 type Artifact struct {
-	Group    string `json:"group"`
-	Artifact string `json:"artifact"`
-	Version  string `json:"version"`
-	Filename string `json:"filename"`
-	Type     string `json:"type"`
-	Checksum string `json:"checksum"`
+	Group        string `json:"group"`
+	Artifact     string `json:"artifact"`
+	Version      string `json:"version"`
+	Filename     string `json:"filename"`
+	Type         string `json:"type"`
+	ChecksumType string `json:"checksumType"`
 }
 
 // NewJavaFileList : Generates a new list of acceptable files to store for this
@@ -42,12 +42,12 @@ func RequestToArtifact(vars map[string]string) (ja Artifact) {
 	// The variables for the group might be slash-delimited, we need them
 	// to be dot-delimited to be accurate in Java terminology.
 	return Artifact{
-		Group:    strings.Replace(vars["group"], "/", ".", -1),
-		Artifact: vars["artifact"],
-		Version:  vars["version"],
-		Filename: vars["filename"] + vars["type"] + vars["checksum"],
-		Type:     strings.Replace(vars["type"], ".", "", -1) + vars["checksum"],
-		Checksum: strings.Replace(vars["checksum"], ".", "", -1),
+		Group:        strings.Replace(vars["group"], "/", ".", -1),
+		Artifact:     vars["artifact"],
+		Version:      vars["version"],
+		Filename:     vars["filename"] + vars["type"] + vars["checksumType"],
+		Type:         strings.Replace(vars["type"], ".", "", -1) + vars["checksumType"],
+		ChecksumType: strings.Replace(vars["checksumType"], ".", "", -1),
 	}
 }
 
@@ -87,12 +87,12 @@ func StorageIdentifierToArtifact(id storage.Identifier) (ja Artifact) {
 	}
 
 	return Artifact{
-		Group:    group,
-		Artifact: artifact,
-		Version:  version,
-		Filename: filename,
-		Type:     typeVar,
-		Checksum: checksum,
+		Group:        group,
+		Artifact:     artifact,
+		Version:      version,
+		Filename:     filename,
+		Type:         typeVar,
+		ChecksumType: checksum,
 	}
 }
 
@@ -114,8 +114,8 @@ func (a Artifact) GetStorageIdentifier() storage.Identifier {
 // ToString : Prints out the Identifier in a easy to understand format.
 func (a Artifact) ToString() string {
 	output := "G(" + a.Group + ") A(" + a.Artifact + ") V(" + a.Version + ") F(" + a.Filename + ") T(" + a.Type + ")"
-	if len(a.Checksum) > 0 {
-		output += " C(" + a.Checksum + ")"
+	if len(a.ChecksumType) > 0 {
+		output += " C(" + a.ChecksumType + ")"
 	}
 	return output
 }
