@@ -10,23 +10,23 @@ import (
 
 func createArtifact() Artifact {
 	return Artifact{
-		Group:    "com.specialedge.hangar",
-		Artifact: "test-artifact",
-		Version:  "1.2.3",
-		Filename: "test-artifact-1.2.3.jar",
-		Type:     "jar",
-		Checksum: "",
+		Group:        "com.specialedge.hangar",
+		Artifact:     "test-artifact",
+		Version:      "1.2.3",
+		Filename:     "test-artifact-1.2.3.jar",
+		Type:         "jar",
+		ChecksumType: "",
 	}
 }
 
 func createArtifactChecksum() Artifact {
 	return Artifact{
-		Group:    "com.specialedge.hangar",
-		Artifact: "test-artifact",
-		Version:  "1.2.3",
-		Filename: "test-artifact-1.2.3.pom.sha1",
-		Type:     "pom.sha1",
-		Checksum: "sha1",
+		Group:        "com.specialedge.hangar",
+		Artifact:     "test-artifact",
+		Version:      "1.2.3",
+		Filename:     "test-artifact-1.2.3.pom.sha1",
+		Type:         "pom.sha1",
+		ChecksumType: "sha1",
 	}
 }
 
