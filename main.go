@@ -23,16 +23,23 @@ func main() {
 		"action": "PrintStartUpMessage",
 	}).Info("Running")
 
+	// Create a router and admin & service endpoints
 	r := mux.NewRouter()
+	r.HandleFunc("/healthcheck", healthcheck.HandlerHealthcheck)
 
-	// Create index to be used by all endpoints.
+	// Initalise the repo endpoints
+	initialiseJavaEndpoints(r)
+
+  	// Serve on 8080 with CORS support.
+	http.ListenAndServe(":8080", handlers.CORS()(r))
+}
+
+func initialiseJavaEndpoints(r *mux.Router) {
+	// Create index to be used by the Java endpoint.
 	ind := index.NewInMemory()
 
-	// Create storage to be used by all endpoints.
+	// Create storage to be used by the Java endpoint.
 	stor := storage.NewStorageLocal()
-
-	// Initial admin & service endpoints
-	r.HandleFunc("/healthcheck", healthcheck.HandlerHealthcheck)
 
 	// Java Endpoints
 	javaEndpoints := java.Endpoints{
@@ -42,7 +49,7 @@ func main() {
 
 	// Add all the endpoints for the Java API
 	javaEndpoints.AppendEndpoints(r)
-
-	// Applying default CORS support
-	http.ListenAndServe(":8080", handlers.CORS()(r))
+	
+	// Load all the current files in the directory as Java Artifacts.
+	javaEndpoints.ReIndex()
 }

@@ -40,3 +40,7 @@ func (i inMemory) AddDownloadedArtifact(key Identifier, filetype string) {
 	log.WithFields(log.Fields{"module": "index", "action": "AddDownloadedArtifact"}).Debug(key.Key + " : " + filetype)
 	i.artifacts[key.Key].FileTypes[filetype] = true
 }
+
+func (i inMemory) CountAll() int {
+	return len(i.artifacts)
+}

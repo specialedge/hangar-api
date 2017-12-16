@@ -2,6 +2,7 @@ package java
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -18,7 +19,6 @@ type Endpoints struct {
 
 // AppendEndpoints : In Java, Artifacts are saved with xml metadata at the artifact level as well as the version level
 func (je Endpoints) AppendEndpoints(r *mux.Router) {
-	// Hmm, still missing the type group :  (?:\\.){type:\\w*}
 	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.jar|\\.pom}", je.javaDownloadArtifactRouter)
 	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.jar|\\.pom}{checksum:\\.md5|\\.sha1}", je.javaDownloadArtifactChecksumRouter)
 }
@@ -48,13 +48,30 @@ func (je Endpoints) javaProxiedArtifactAction(w http.ResponseWriter, r *http.Req
 		mavenCentral := "https://repo.maven.apache.org/maven2/" + strings.Replace(ja.Group, ".", "/", -1) + "/" + ja.Artifact + "/" + ja.Version + "/" + ja.Filename
 		je.ArtifactStorage.DownloadArtifactToStorage(mavenCentral, ja.GetStorageIdentifier())
 
-		// Add to the index
-		if !je.ArtifactIndex.IsArtifact(ja.GetIdentifier()) {
-			je.ArtifactIndex.AddArtifact(ja.GetIdentifier(), NewJavaFileList())
-		}
-		je.ArtifactIndex.AddDownloadedArtifact(ja.GetIdentifier(), ja.Type)
+		addJavaArtifactToIndex(je, ja)
 	}
 
 	// Serve the File to the User
 	je.ArtifactStorage.ServeFile(w, r, ja.GetStorageIdentifier())
+}
+
+// ReIndex : Has the index populate itself from the storage using the model for Java Artifacts
+func (je Endpoints) ReIndex() {
+	idents := je.ArtifactStorage.GetArtifacts()
+
+	for _, file := range idents {
+		ja := StorageIdentifierToArtifact(file)
+		addJavaArtifactToIndex(je, ja)
+	}
+
+	log.WithFields(log.Fields{"module": "api", "action": "ReIndex"}).Info(strconv.Itoa(je.ArtifactIndex.CountAll()) + " current artifacts registered.")
+}
+
+func addJavaArtifactToIndex(je Endpoints, ja Artifact) {
+	// Add to the index
+	if !je.ArtifactIndex.IsArtifact(ja.GetIdentifier()) {
+		je.ArtifactIndex.AddArtifact(ja.GetIdentifier(), NewJavaFileList())
+	}
+
+	je.ArtifactIndex.AddDownloadedArtifact(ja.GetIdentifier(), ja.Type)
 }

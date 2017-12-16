@@ -6,6 +6,7 @@ type Index interface {
 	IsDownloadedArtifact(id Identifier, filetype string) bool
 	AddArtifact(id Identifier, filetypes FileList)
 	AddDownloadedArtifact(id Identifier, filetype string)
+	CountAll() int
 }
 
 // Identifier : Basic building block of the index.
