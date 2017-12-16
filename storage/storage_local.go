@@ -17,8 +17,7 @@ type storageLocal struct {
 }
 
 // NewStorageLocal : Creates a new Storage module which uses the local disk.
-func NewStorageLocal() Storage {
-	path := `F:\Code\specialedge\storage\java\`
+func NewStorageLocal(path string) Storage {
 
 	// If the path doesn't exist, create it.
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -66,7 +65,7 @@ func (s storageLocal) GetArtifacts() []Identifier {
 
 	filepath.Walk(s.Path, func(path string, f os.FileInfo, err error) error {
 		if !f.IsDir() {
-			base := strings.Replace(path, s.Path, "", 1)
+			base := strings.Replace(path, filepath.Clean(s.Path), "", 1)
 			log.WithFields(log.Fields{"module": "storage", "action": "GetArtifacts"}).Debug(base)
 			fileList = append(fileList, Identifier{
 				Key:       strings.Replace(base, "\\", "/", -1),
@@ -76,6 +75,6 @@ func (s storageLocal) GetArtifacts() []Identifier {
 		return nil
 	})
 
-	log.WithFields(log.Fields{"module": "storage", "action": "GetArtifacts"}).Info(strconv.Itoa(len(fileList)) + " entities retrieved from storage...")
+	log.WithFields(log.Fields{"module": "storage", "action": "GetArtifacts"}).Info(strconv.Itoa(len(fileList)) + " entities retrieved from storage (" + s.Path + ")")
 	return fileList
 }

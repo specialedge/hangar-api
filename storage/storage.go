@@ -1,6 +1,11 @@
 package storage
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+
+	"github.com/spf13/viper"
+)
 
 // Identifier : Basic building block of the index.
 type Identifier struct {
@@ -13,4 +18,16 @@ type Storage interface {
 	DownloadArtifactToStorage(uri string, id Identifier)
 	ServeFile(w http.ResponseWriter, r *http.Request, id Identifier)
 	GetArtifacts() []Identifier
+}
+
+// BuildStorage : Returns an initialised storage based on the config key.
+func BuildStorage(storageConfigKey string) Storage {
+
+	// Initialises and returns an instance of LocalStorage
+	if strings.Compare(viper.GetString(storageConfigKey+".type"), "local") == 0 {
+		return NewStorageLocal(viper.GetString(storageConfigKey + ".path"))
+	}
+
+	// If storage configuration is not complete or cannot be instantiated, return nil
+	return nil
 }

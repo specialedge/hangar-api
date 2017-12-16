@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/specialedge/hangar-api/index"
 	"github.com/specialedge/hangar-api/storage"
+	"github.com/spf13/viper"
 )
 
 // Endpoints : API for serving Java Requests
@@ -17,10 +18,50 @@ type Endpoints struct {
 	ArtifactStorage storage.Storage
 }
 
+// InitialiseJavaEndpoints : Initialise the object that contains the endpoints,
+// bringing together the requested storage and indexing mechanism.
+func InitialiseJavaEndpoints(r *mux.Router) {
+
+	stor := storage.BuildStorage("java.storage")
+	ind := index.BuildIndex("java.index")
+
+	// Provided an option has been given for both...
+	if stor != nil && ind != nil {
+
+		// Create Endpoints object
+		javaEndpoints := Endpoints{
+			ArtifactIndex:   ind,
+			ArtifactStorage: stor,
+		}
+
+		// Add all the endpoints for the Java API
+		javaEndpoints.AppendEndpoints(r)
+
+		// If required, re-populate the index.
+		if viper.GetBool("java.index.reindex") {
+			javaEndpoints.ReIndex()
+		}
+	}
+}
+
 // AppendEndpoints : In Java, Artifacts are saved with xml metadata at the artifact level as well as the version level
-func (je Endpoints) AppendEndpoints(r *mux.Router) {
-	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.jar|\\.pom}", je.javaDownloadArtifactRouter)
-	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.jar|\\.pom}{checksum:\\.md5|\\.sha1}", je.javaDownloadArtifactChecksumRouter)
+func (je Endpoints) AppendEndpoints(r *mux.Router, handlers ...func(w http.ResponseWriter, r *http.Request)) {
+
+	var javaDarFunc func(w http.ResponseWriter, r *http.Request)
+	var javaDacrFunc func(w http.ResponseWriter, r *http.Request)
+
+	if handlers == nil {
+		// If we don't submit any options, we should go for the default functions to handle these endpoints.
+		javaDarFunc = je.javaDownloadArtifactRouter
+		javaDacrFunc = je.javaDownloadArtifactChecksumRouter
+	} else {
+		// However, for perhaps test purposes - if we want to override these handlers then we should.
+		javaDarFunc = handlers[0]
+		javaDacrFunc = handlers[1]
+	}
+
+	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.jar|\\.pom}", javaDarFunc)
+	r.HandleFunc("/java/{group:.+}/{artifact:.+}/{version:.+}/{filename:[^/]+}{type:\\.jar|\\.pom}{checksumType:\\.md5|\\.sha1}", javaDacrFunc)
 }
 
 // For checksums, we want to attempt to download something from the proxy - but if it doesn't exist, it's probably
