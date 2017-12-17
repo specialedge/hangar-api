@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// JavaEndpoints : API for serving Java Requests
-type JavaEndpoints struct {
+// endpoints : API for serving Java Requests
+type endpoints struct {
 	ArtifactIndex   index.Index
 	ArtifactStorage storage.Storage
 }
@@ -31,7 +31,7 @@ func InitialiseJavaEndpoints(r *mux.Router) {
 	if stor != nil && ind != nil {
 
 		// Create Endpoints object
-		javaEndpoints := JavaEndpoints{
+		javaEndpoints := endpoints{
 			ArtifactIndex:   ind,
 			ArtifactStorage: stor,
 		}
@@ -50,7 +50,7 @@ func InitialiseJavaEndpoints(r *mux.Router) {
 }
 
 // AppendEndpoints : In Java, Artifacts are saved with xml metadata at the artifact level as well as the version level
-func (je JavaEndpoints) AppendEndpoints(r *mux.Router, handlers ...func(w http.ResponseWriter, r *http.Request)) {
+func (je endpoints) AppendEndpoints(r *mux.Router, handlers ...func(w http.ResponseWriter, r *http.Request)) {
 
 	var javaDarFunc func(w http.ResponseWriter, r *http.Request)
 	var javaDacrFunc func(w http.ResponseWriter, r *http.Request)
@@ -72,21 +72,21 @@ func (je JavaEndpoints) AppendEndpoints(r *mux.Router, handlers ...func(w http.R
 // For checksums, we want to attempt to download something from the proxy - but if it doesn't exist, it's probably
 // better if we generate a checksum using the artifact we've got as some files don't have a checksum.
 // TODO: Maybe we make this choice configurable?
-func (je JavaEndpoints) javaDownloadArtifactChecksumRouter(w http.ResponseWriter, r *http.Request) {
+func (je endpoints) javaDownloadArtifactChecksumRouter(w http.ResponseWriter, r *http.Request) {
 
 	ja := RequestToArtifact(mux.Vars(r))
 	log.WithFields(log.Fields{"module": "api", "action": "downloadChecksum"}).Info(ja.ToString())
 	je.javaProxiedArtifactAction(w, r, ja)
 }
 
-func (je JavaEndpoints) javaDownloadArtifactRouter(w http.ResponseWriter, r *http.Request) {
+func (je endpoints) javaDownloadArtifactRouter(w http.ResponseWriter, r *http.Request) {
 
 	ja := RequestToArtifact(mux.Vars(r))
 	log.WithFields(log.Fields{"module": "api", "action": "downloadArtifact"}).Info(ja.ToString())
 	je.javaProxiedArtifactAction(w, r, ja)
 }
 
-func (je JavaEndpoints) javaProxiedArtifactAction(w http.ResponseWriter, r *http.Request, ja Artifact) {
+func (je endpoints) javaProxiedArtifactAction(w http.ResponseWriter, r *http.Request, ja Artifact) {
 
 	// If the file does not exist in the index and cannot be served from within the system...
 	if !je.ArtifactIndex.IsDownloadedArtifact(ja.GetIdentifier(), ja.Type) {
@@ -109,7 +109,7 @@ func (je JavaEndpoints) javaProxiedArtifactAction(w http.ResponseWriter, r *http
 }
 
 // ReIndex : Has the index populate itself from the storage using the model for Java Artifacts
-func (je JavaEndpoints) ReIndex() {
+func (je endpoints) ReIndex() {
 	idents := je.ArtifactStorage.GetArtifacts()
 
 	for _, file := range idents {
@@ -120,7 +120,7 @@ func (je JavaEndpoints) ReIndex() {
 	log.WithFields(log.Fields{"module": "api", "action": "ReIndex"}).Info(strconv.Itoa(je.ArtifactIndex.CountAll()) + " current artifacts registered.")
 }
 
-func addJavaArtifactToIndex(je JavaEndpoints, ja Artifact) {
+func addJavaArtifactToIndex(je endpoints, ja Artifact) {
 	// Add to the index
 	if !je.ArtifactIndex.IsArtifact(ja.GetIdentifier()) {
 		je.ArtifactIndex.AddArtifact(ja.GetIdentifier(), NewJavaFileList())

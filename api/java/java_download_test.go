@@ -12,7 +12,7 @@ import (
 func TestAppendEndpoints(t *testing.T) {
 
 	// Create Endpoints object
-	javaEndpoints := JavaEndpoints{
+	javaEndpoints := endpoints{
 		ArtifactIndex:   nil,
 		ArtifactStorage: nil,
 	}
