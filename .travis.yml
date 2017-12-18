@@ -22,21 +22,12 @@ after_success:
   && docker build -t $REPO:$COMMIT --build-arg GITSHA=$TRAVIS_COMMIT --build-arg BUILDDATE="`date`" .
   && docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
   && if [[ "$TRAVIS_BRANCH" == "master" ]]; then docker tag $REPO:$COMMIT $REPO:latest; else docker tag $REPO:$COMMIT $REPO:$TRAVIS_BRANCH; fi
-  && docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+  && docker login -u $DOCKER_USER -p $DOCKER_PASS
   && docker push $REPO
 
 env:
   global:
   - COMMIT=${TRAVIS_COMMIT::8}
-  - secure: "SIG45v3VykCAfgjOLxS/rgYC3a8E1pY32+lgCbNzu9CBfc+ZfinvFbnKqpB17Z3PApxlIRS+DZ
-  dHDujI5t9qhkiHApiNPqTsOJCeE1jJtWlfAtfxdJpTloOQEZrhp9OACjxjBCJieSUlYV/XfzwQjIgjaIvjD6R
-  cMpkOqxcv86va45Pd/e1z9daV0nHNmzYWar7TSc9AHE8P4InlxOpnRxm+UgWxcmWZ6Zhqt4+yYMvaDt2ZVRef
-  0S4JnVJytsPxFAn8INjMBxUyRZtELiKWtArefsEapB3s0h2Dc/DG+5q23M5Xz3HOGpwXMv0aDgM7zIxmYuPT2
-  RAD0zMqaiFp4dBVspkULnSShS6EPRi8ywvJVoupEc0/y94wp3QmEp2OdL5bzoUu5d/kCQG8VBo6wcSwdEK6km
-  O1c/aDYV8mXE/mc1p5VM59rqVHzVBgxZL8sRPNENH1+GXMW1GRGWteQsGdjRRyJlR6V2tjRau4MrILIK/lUsU
-  Dd8w36SMUEvoMFlJY2KvoUxZOzgS9Uf4pPzUqyXxrHY+BB73LHz5kkedzrLAVexKGS50t7Xlgru8jgZW8ebNH
-  yTum3FCpr1DSZcqfsQBe0ddU0BBsKiJ2pTaZsoN27fKf8cxE1w+suBnjQaL5l+K0hcqwwsMZcAN59bg/UyWfd
-  8QRyE0h3LfGP5U=" #DOCKER_EMAIL
   - secure: "iR1bYb9UCA3og79lZjK8AqJvHon/4sa9VPidDgC3F+IRZArLgHuBzmzui85cGYyzgg9aORKTAm
   RipmApbk7PpWfDWzGgW1qzowSy8YBvi1vE5hyAA9aA78MsDBUp5GWAOszjatvMJyoEqV/JwmM6FyyMWAmTH3M
   G5JBqwmeyZCQKc6mNm5M2zyAj4oNRXqRcbvhRpZORPY/kJuxPL20lbHuABeGn7kGmBvHOciGQH8ON8TdMBxPT
