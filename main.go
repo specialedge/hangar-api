@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	figure "github.com/common-nighthawk/go-figure"
@@ -9,47 +10,64 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/specialedge/hangar-api/api/healthcheck"
 	"github.com/specialedge/hangar-api/api/java"
-	"github.com/specialedge/hangar-api/index"
-	"github.com/specialedge/hangar-api/storage"
+	"github.com/spf13/viper"
 )
 
 func main() {
 
+	//log.SetLevel(log.DebugLevel)
+
 	// Create startup message to welcome the user.
 	startUpMessage := figure.NewFigure("hangar-api", "smslant", true)
 	startUpMessage.Print()
+
+	// Print event to show the system is starting
 	log.WithFields(log.Fields{
 		"module": "main",
 		"action": "PrintStartUpMessage",
-	}).Info("Running")
+	}).Info("Starting")
+
+	// Read in the configuration file
+	readConfiguration()
 
 	// Create a router and admin & service endpoints
 	r := mux.NewRouter()
 	r.HandleFunc("/healthcheck", healthcheck.HandlerHealthcheck)
 
 	// Initalise the repo endpoints
-	initialiseJavaEndpoints(r)
+	if viper.IsSet("java") {
 
-  	// Serve on 8080 with CORS support.
+		java.InitialiseJavaEndpoints(r)
+
+		log.WithFields(log.Fields{
+			"module": "main",
+			"action": "JavaEnabled",
+		}).Info("Finished creating Java Endpoint")
+	}
+
+	// Serve on 8080 with CORS support.
 	http.ListenAndServe(":8080", handlers.CORS()(r))
 }
 
-func initialiseJavaEndpoints(r *mux.Router) {
-	// Create index to be used by the Java endpoint.
-	ind := index.NewInMemory()
+func readConfiguration() {
 
-	// Create storage to be used by the Java endpoint.
-	stor := storage.NewStorageLocal()
+	// Without a configuration file, we don't want to start the system.
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("./config")
+	err := viper.ReadInConfig()
 
-	// Java Endpoints
-	javaEndpoints := java.Endpoints{
-		ArtifactIndex:   ind,
-		ArtifactStorage: stor,
+	if err != nil {
+		log.WithFields(log.Fields{
+			"module": "main",
+			"action": "readConfiguration",
+		}).Info("Failed to read configuration file : %s", err)
+
+		panic(fmt.Errorf("Fatal error config file: %s", err))
 	}
 
-	// Add all the endpoints for the Java API
-	javaEndpoints.AppendEndpoints(r)
-	
-	// Load all the current files in the directory as Java Artifacts.
-	javaEndpoints.ReIndex()
+	log.WithFields(log.Fields{
+		"module": "main",
+		"action": "readConfiguration",
+	}).Info("Configuration parsed...")
 }
