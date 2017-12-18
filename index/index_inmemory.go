@@ -11,8 +11,8 @@ type inMemory struct {
 	artifacts map[string]FileList
 }
 
-// NewInMemory : Creates a new in-memory index to be used by the API Endpoints.
-func NewInMemory() Index {
+// newInMemory : Creates a new in-memory index to be used by the API Endpoints.
+func newInMemory() Index {
 	return &inMemory{
 		artifacts: make(map[string]FileList),
 	}
@@ -39,4 +39,8 @@ func (i inMemory) IsDownloadedArtifact(key Identifier, filetype string) bool {
 func (i inMemory) AddDownloadedArtifact(key Identifier, filetype string) {
 	log.WithFields(log.Fields{"module": "index", "action": "AddDownloadedArtifact"}).Debug(key.Key + " : " + filetype)
 	i.artifacts[key.Key].FileTypes[filetype] = true
+}
+
+func (i inMemory) CountAll() int {
+	return len(i.artifacts)
 }

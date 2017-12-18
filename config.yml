@@ -1,0 +1,62 @@
+###
+# Simple & Stateless
+#
+# This configuration will start the system with a local repo storage under /data
+# and an in-memory index, meaning if you stop this server then restart it the 
+# storage will re-index itself.
+#
+# This is the default configuration and how the system will start without a config. 
+###
+
+java:
+  storage: 
+    type: local
+    path: "/data"
+  index:
+    type: in-memory
+    reindex: true
+  proxies:
+    - "https://repo.maven.apache.org/maven2/"
+
+###
+# Build Agent (Concept)
+#
+# This configuration is like the default except it will pass any requests to upload
+# through to a parent instance. This will allow you to start up and serve artifacts
+# that are under the local storage for quick builds but not have any artifacts on 
+# the system that we can't replace.
+###
+
+# java:
+#   parent:
+#     uri: "https://myotherartifactserver.local/java"
+#     key: "AAABBBCCCDDDEEEFFF"
+#   storage: 
+#     type: local
+#     path: "/data"
+#   index:
+#     type: in-memory
+#     reindex: true
+#   proxies:
+#     - "https://repo.maven.apache.org/maven2/"
+
+###
+# High Availability (Concept) : EFS + ETCD
+#
+# If you want to run more than one instance then you'll need a shared storage and
+# index. In this config, the storage is using AWS EFS and the index is etcd. We
+# don't want to run a re-index as we are expecting the index to already have that
+# information.
+###
+
+# java:
+#   storage: 
+#     type: local
+#     path: "/mnt/data"
+#   index:
+#     type: etcd
+#     host: "https://youretcdcluster:2379" 
+#     rootPath: /artefacts/java
+#     reindex: false
+#   proxies:
+#     - "https://repo.maven.apache.org/maven2/"
