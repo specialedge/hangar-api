@@ -95,6 +95,7 @@ func (je endpoints) javaProxiedArtifactAction(w http.ResponseWriter, r *http.Req
 		proxies := viper.GetStringSlice("java.proxies")
 		for _, proxy := range proxies {
 
+			// This system does not currently work as intended - see issue #16.
 			u, _ := url.Parse(proxy)
 			u.Path = path.Join(u.Path, strings.Replace(ja.Group, ".", "/", -1), ja.Artifact, ja.Version, ja.Filename)
 

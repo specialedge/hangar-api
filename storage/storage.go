@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -29,5 +30,6 @@ func BuildStorage(storageConfigKey string) Storage {
 	}
 
 	// If storage configuration is not complete or cannot be instantiated, return nil
+	log.WithFields(log.Fields{"module": "storage", "action": "BuildStorage"}).Error("Could not instantiate storage!")
 	return nil
 }

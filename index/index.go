@@ -3,6 +3,7 @@ package index
 import (
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -35,5 +36,6 @@ func BuildIndex(indexConfigKey string) Index {
 	}
 
 	// If index configuration is not complete or cannot be instantiated, return nil
+	log.WithFields(log.Fields{"module": "index", "action": "BuildIndex"}).Error("Could not instantiate index!")
 	return nil
 }
