@@ -1,4 +1,6 @@
 language: go
+services: 
+- docker
 
 go:
  - 1.8
@@ -11,4 +13,36 @@ install:
 
 script:
  - go test -v $(go list ./... | grep -v /vendor/)
- - golint -set_exit_status $(go list ./... | grep -v /vendor/) 
+ - golint -set_exit_status $(go list ./... | grep -v /vendor/)
+ - go build
+
+after_success: 
+- test $TRAVIS_PULL_REQUEST = false
+  && export REPO=specialedge/hangar-api
+  && docker build -t $REPO:$COMMIT --build-arg GITSHA=$TRAVIS_COMMIT --build-arg BUILDDATE="`date`" .
+  && docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
+  && if [[ "$TRAVIS_BRANCH" == "master" ]]; then docker tag $REPO:$COMMIT $REPO:latest; else docker tag $REPO:$COMMIT $REPO:$TRAVIS_BRANCH; fi
+  && docker login -u $DOCKER_USER -p $DOCKER_PASS
+  && docker push $REPO
+
+env:
+  global:
+  - COMMIT=${TRAVIS_COMMIT::8}
+  - secure: "iR1bYb9UCA3og79lZjK8AqJvHon/4sa9VPidDgC3F+IRZArLgHuBzmzui85cGYyzgg9aORKTAm
+  RipmApbk7PpWfDWzGgW1qzowSy8YBvi1vE5hyAA9aA78MsDBUp5GWAOszjatvMJyoEqV/JwmM6FyyMWAmTH3M
+  G5JBqwmeyZCQKc6mNm5M2zyAj4oNRXqRcbvhRpZORPY/kJuxPL20lbHuABeGn7kGmBvHOciGQH8ON8TdMBxPT
+  kRhRSNtpVEUh9ZV+B6DeUqZtFbQUxjze2G15xXwY9oEetQ13BwKC2bChFQlyQBUoV7YFf+JWGGWnf5srMKBmt
+  AzpLdvMgN4W5LbHoxuFl2UEInwWz9k/KmjHYRxPKyt4MwPBXuyFU2mYiqJsJE03JTQwDOulRu0rM4vqP3iT1i
+  pu1ZniPekaVZhU9se0ya3DDvCYV/t31WG7BwIy34z4dl9MQmDZ9twX0dHGsuwHAPQ7vL6VxBPcvUeHavA+g8Y
+  pPbyKbanctB2oNtdZaZlJnD+fXcINTrP6fl0Kw5SQBfY7S1SM2RACvkQgJq9IR8LXrGFQHTo821Sn0+ze74ai
+  8Ylo7p5r/Z35tbpX0tR30d9Dq+U5Fi5QyypTvL7JGImA3NO2pCcuL6E2eFO+YVKRrPEXIj06DrlbsLkEzm5ZD
+  AVCl1LKQQrcdOs=" #DOCKER_USER
+  - secure: "jiBB5ADSTdVMiNqruK9V6tRi/Ohh2SraIYKMyiciJ+T196EtK8zsmmmJUawkP56jRGMzTSVkz9
+  MdHX5l4eEQzDtIjEJlxRGIXupLu+iKdYTKSo5eJUkmyrV8S2502Hw/nhPEpy52WVy+pV6ZvMtMtmcNLRWIwKg
+  GEiu8byQRw+JyypAiAsH0eaF147MJu/SBBGKF7dy/6odFRIKL2anT7PDkIPd8DOv7fbrjsuBGBnIAlOzbBuYJ
+  odCGTiXYu2J2u6IkftOSnBG+HhoFFJnkKzxKNSjFpvX3aWzuyBkeHqC45NiieJhhSVe3TbDlK2yrVSqdpYiLv
+  ApM1iq9wn8ho4n1/uVk69oPLpXQGKFpsF9mQgVJvDo8cwsG7A84ck3szK4gqMQodSL+rKOUsMjtUzlMJNJdm5
+  ZsylqhLVTQ1MixdsszOFVdmCeJrnh+C+ekC5f+L4hnDbaoMrQe+zUhwgHih/aGZYK7xp6lLxB4HG9t7X7YdWQ
+  syfIdV6snf/QbnnCDUfL8DBK5fwJjMi0dNHMqsAdKaA8Ng3XXh6As2Hgu6TbEmBOD4NWUwQnGqzzVjOkOLNlD
+  RivRzpm0GbeFpDRqxBbz7T2+JDfaFosUEnX7d9UzWqB6sLnZD0bzmh5bctuXr25+1mGA4pAOaLBgga657ZIW6
+  OKry8+ILvRGoGg=" #DOCKER_PASS
