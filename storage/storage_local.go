@@ -1,14 +1,14 @@
 package storage
 
 import (
-	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/cavaliercoder/grab"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,26 +31,70 @@ func NewStorageLocal(path string) Storage {
 }
 
 // DownloadArtifactToStorage : Download the artifact from the URI to Storage
-func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier) {
+func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier, codes ...int) (int, error) {
 
 	// Create a Custom Client
-	client := grab.NewClient()
-	client.UserAgent = "Hangar v0.0.1"
-
-	// Create a Download Request
-	req, err := grab.NewRequest(filepath.Join(s.Path, id.Key), uri)
-	if err != nil {
-		panic(err)
+	var client = &http.Client{
+		Timeout: time.Second * 10,
 	}
 
+	filename, err := filepath.Abs(filepath.Join(s.Path, id.Key))
+
+	// We choose to attempt to get the data first.
+	// It is far more likely that this request will fail (as some repositories may
+	// not actually have the artefact we are looking for) so we want to find that out
+	// before creating or saving a file.
 	log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Info(uri)
-	resp := client.Do(req)
 
-	// check for errors
-	if err := resp.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "Download failed: %v\n", err)
-		os.Exit(1)
+	req, err := http.NewRequest("GET", uri, nil)
+	req.Header.Set("User-Agent", "Hangar v0.0.1")
+	resp, err := client.Do(req)
+
+	// If we couldn't form the request, return with an error.
+	if err != nil {
+		log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Error("Could not execute request : " + err.Error())
+		return -1, err
 	}
+	defer resp.Body.Close()
+
+	// Once we know the request (and response) was valid, we want to check for any status codes that were not whitelisted.
+	if resp != nil {
+		if !intExists(resp.StatusCode, codes) {
+			log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Error("Could not download file : " + resp.Status)
+			return resp.StatusCode, err
+		}
+	}
+
+	// So we know it's a valid response code. We now want to save the file to disk. Create the directory then the file within it.
+	if _, err := os.Stat(filepath.Dir(filename)); os.IsNotExist(err) {
+		os.MkdirAll(filepath.Dir(filename), 644)
+	}
+	out, err := os.Create(filename)
+
+	if err != nil {
+		log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Error("Could not create file at request : " + err.Error())
+		return -1, err
+	}
+	defer out.Close()
+
+	// Write the body to the file.
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return -1, err
+	}
+
+	return resp.StatusCode, nil
+}
+
+// I have no idea why a function like this does not exist within
+// the base Go libraries, but there you go.
+func intExists(val int, arr []int) bool {
+	for _, a := range arr {
+		if a == val {
+			return true
+		}
+	}
+	return false
 }
 
 // ServeFile : Requests that the storage serve the user with the artifact.
