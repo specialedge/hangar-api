@@ -10,23 +10,29 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 )
 
 type storageLocal struct {
-	Path string
+	Path       string
+	FileSystem afero.Fs
 }
 
 // NewStorageLocal : Creates a new Storage module which uses the local disk.
 func NewStorageLocal(path string) Storage {
 
+	// We are using afero in order to make mocking easier.
+	var AppFs = afero.NewMemMapFs()
+
 	// If the path doesn't exist, create it.
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if _, err := AppFs.Stat(path); os.IsNotExist(err) {
 		log.WithFields(log.Fields{"module": "storage", "action": "NewStorageLocal"}).Info("Creating Empty Directory : " + path)
-		os.Mkdir(path, 0755)
+		AppFs.Mkdir(path, 0755)
 	}
 
 	return &storageLocal{
-		Path: path,
+		Path:       path,
+		FileSystem: AppFs,
 	}
 }
 
@@ -66,10 +72,10 @@ func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier, codes
 	}
 
 	// So we know it's a valid response code. We now want to save the file to disk. Create the directory then the file within it.
-	if _, err := os.Stat(filepath.Dir(filename)); os.IsNotExist(err) {
-		os.MkdirAll(filepath.Dir(filename), 644)
+	if _, err := s.FileSystem.Stat(filepath.Dir(filename)); os.IsNotExist(err) {
+		s.FileSystem.MkdirAll(filepath.Dir(filename), 644)
 	}
-	out, err := os.Create(filename)
+	out, err := s.FileSystem.Create(filename)
 
 	if err != nil {
 		log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Error("Could not create file at request : " + err.Error())
@@ -107,7 +113,7 @@ func (s storageLocal) ServeFile(w http.ResponseWriter, r *http.Request, id Ident
 func (s storageLocal) GetArtifacts() []Identifier {
 	fileList := []Identifier{}
 
-	filepath.Walk(s.Path, func(path string, f os.FileInfo, err error) error {
+	afero.Walk(s.FileSystem, s.Path, func(path string, f os.FileInfo, err error) error {
 		if !f.IsDir() {
 			base := strings.Replace(path, filepath.Clean(s.Path), "", 1)
 			log.WithFields(log.Fields{"module": "storage", "action": "GetArtifacts"}).Debug(base)
