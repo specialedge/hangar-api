@@ -18,6 +18,17 @@ java:
   proxies:
     - "https://repo.maven.apache.org/maven2/"
 
+python:
+  storage:
+    type: local
+    path: "/data"
+  index:
+    type: in-memory
+    reindex: true
+  proxies:
+    - "https://pypi.python.org/packages"
+
+
 ###
 # Build Agent (Concept)
 #

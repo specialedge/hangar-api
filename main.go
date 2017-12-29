@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/specialedge/hangar-api/api/healthcheck"
 	"github.com/specialedge/hangar-api/api/java"
+	"github.com/specialedge/hangar-api/api/python"
 	"github.com/spf13/viper"
 )
 
@@ -43,6 +44,17 @@ func main() {
 			"module": "main",
 			"action": "JavaEnabled",
 		}).Info("Finished creating Java Endpoint")
+	}
+
+	if viper.IsSet("python") {
+
+		python.InitialisePythonEndpoints(r)
+
+		log.WithFields(log.Fields{
+			"module": "main",
+			"action": "PythonEnabled",
+		}).Info("Finished creating Python Endpoint")
+
 	}
 
 	// Serve on 8080 with CORS support.
