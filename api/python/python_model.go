@@ -48,7 +48,7 @@ func RequestToArtifact(vars map[string]string) (pa Artifact) {
 }
 
 // RequestToVersions should return all the available versions (INCLUDING filetype) for a given package
-func RequestToVersions(pakcageName string) []string {
+func RequestToVersions(packageName string) []string {
 	versions := []string{"0.1", "0.2"}
 	return versions
 }

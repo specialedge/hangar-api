@@ -79,15 +79,16 @@ func (pe endpoints) pythonVersionArtifactRouter(w http.ResponseWriter, r *http.R
 	packageName := mux.Vars(r)["packageName"]
 	localVersions := RequestToVersions(packageName)
 	remoteVersions := pe.FetchRemoteVersions(packageName)
+	versions := mergeVersions(localVersions, remoteVersions)
 	log.WithFields(log.Fields{"module": "api", "action": "listingArtifactVersions"}).Info(packageName)
 	pe.returnVersions(w, r, versions, packageName)
 }
 
 func (pe endpoints) FetchRemoteVersions(packageName string) []string {
 	var remoteVersions []string
-	for _, proxy := range pe.Proxies {
-		// Scrape the versions from each proxy in turn here and merge the results
-	}
+	// for _, proxy := range pe.Proxies {
+	// 	// Scrape the versions from each proxy in turn here and merge the results
+	// }
 	return remoteVersions
 }
 
@@ -152,4 +153,21 @@ func addPythonArtifactToIndex(pe endpoints, pa Artifact) {
 	}
 
 	pe.ArtifactIndex.AddDownloadedArtifact(pa.GetIdentifier(), pa.PackageFile)
+}
+
+// Use this to merge two slices with no repeat values
+func mergeVersions(local, remote []string) []string {
+	// Create a map that holds the values from each slice - use a struct as it's zero bytes
+	uniqueValues := make(map[string]struct{})
+	for _, v := range local {
+		uniqueValues[v] = struct{}{}
+	}
+	for _, v := range remote {
+		uniqueValues[v] = struct{}{}
+	}
+	uniqueStrings := make([]string, 0, len(uniqueValues))
+	for val := range uniqueValues {
+		uniqueStrings = append(uniqueStrings, val)
+	}
+	return uniqueStrings
 }
