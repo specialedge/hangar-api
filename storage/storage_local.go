@@ -37,7 +37,8 @@ func NewStorageLocal(path string) Storage {
 }
 
 // DownloadArtifactToStorage : Download the artifact from the URI to Storage
-func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier, codes ...int) (int, error) {
+// We pass in a set of whitelisted status codes to accept from the proxy server.
+func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier, acceptedStatusCodes ...int) (int, error) {
 
 	// Create a Custom Client
 	var client = &http.Client{
@@ -59,13 +60,13 @@ func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier, codes
 	// If we couldn't form the request, return with an error.
 	if err != nil {
 		log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Error("Could not execute request : " + err.Error())
-		return -1, err
+		return http.StatusInternalServerError, err
 	}
 	defer resp.Body.Close()
 
 	// Once we know the request (and response) was valid, we want to check for any status codes that were not whitelisted.
 	if resp != nil {
-		if !intExists(resp.StatusCode, codes) {
+		if !intExists(resp.StatusCode, acceptedStatusCodes) {
 			log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Error("Could not download file : " + resp.Status)
 			return resp.StatusCode, err
 		}
@@ -79,14 +80,14 @@ func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier, codes
 
 	if err != nil {
 		log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Error("Could not create file at request : " + err.Error())
-		return -1, err
+		return http.StatusInternalServerError, err
 	}
 	defer out.Close()
 
 	// Write the body to the file.
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return -1, err
+		return http.StatusInternalServerError, err
 	}
 
 	return resp.StatusCode, nil
