@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/cavaliercoder/grab"
-  packages = ["."]
-  revision = "e2cf8055a943781c5f6424590b0495cd59f616f0"
-  version = "v2.0.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/common-nighthawk/go-figure"
   packages = ["."]
@@ -124,6 +118,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4351cc6eb44466b08d48576418ca041bc5bcaed8fa6470b8403ef972be139f7c"
+  inputs-digest = "433607530b76b5dfdef82f465bba290b3ff5f573183e38fd68fa346164eaca3c"
   solver-name = "gps-cdcl"
   solver-version = 1

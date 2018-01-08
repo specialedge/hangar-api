@@ -16,7 +16,7 @@ type Identifier struct {
 
 // Storage : Interface for the Storage Core Module
 type Storage interface {
-	DownloadArtifactToStorage(uri string, id Identifier)
+	DownloadArtifactToStorage(uri string, id Identifier, codes ...int) (int, error)
 	ServeFile(w http.ResponseWriter, r *http.Request, id Identifier)
 	GetArtifacts() []Identifier
 }
