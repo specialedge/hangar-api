@@ -34,7 +34,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/healthcheck", healthcheck.HandlerHealthcheck)
 
-	// Initalise the repo endpoints
+	// Initialise the repo endpoints
 	if viper.IsSet("java") {
 
 		java.InitialiseJavaEndpoints(r)
