@@ -19,6 +19,7 @@ type Storage interface {
 	DownloadArtifactToStorage(uri string, id Identifier, codes ...int) (int, error)
 	ServeFile(w http.ResponseWriter, r *http.Request, id Identifier)
 	GetArtifacts() []Identifier
+	SaveArtifact(w http.ResponseWriter, r *http.Request, id Identifier)
 }
 
 // BuildStorage : Returns an initialised storage based on the config key.

@@ -21,8 +21,8 @@ type storageLocal struct {
 // NewStorageLocal : Creates a new Storage module which uses the local disk.
 func NewStorageLocal(path string) Storage {
 
-	// We are using afero in order to make mocking easier.
-	var AppFs = afero.NewMemMapFs()
+	// We are using afero in order to make mocking easier. To switch to in-memory, use afero.NewMemMapFs()
+	var AppFs = afero.NewOsFs()
 
 	// If the path doesn't exist, create it.
 	if _, err := AppFs.Stat(path); os.IsNotExist(err) {
@@ -36,22 +36,23 @@ func NewStorageLocal(path string) Storage {
 	}
 }
 
-// DownloadArtifactToStorage : Download the artifact from the URI to Storage
+// DownloadArtifactToStorage : Download the artifact from the URI to Storage.
 // We pass in a set of whitelisted status codes to accept from the proxy server.
-func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier, acceptedStatusCodes ...int) (int, error) {
+func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier, codes ...int) (int, error) {
 
 	// Create a Custom Client
 	var client = &http.Client{
 		Timeout: time.Second * 10,
 	}
 
-	filename, err := filepath.Abs(filepath.Join(s.Path, id.Key))
+	filename := filepath.Join(s.Path, id.Key)
 
 	// We choose to attempt to get the data first.
 	// It is far more likely that this request will fail (as some repositories may
 	// not actually have the artefact we are looking for) so we want to find that out
 	// before creating or saving a file.
 	log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Info(uri)
+	log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Debug(filename)
 
 	req, err := http.NewRequest("GET", uri, nil)
 	req.Header.Set("User-Agent", "Hangar v0.0.1")
@@ -66,7 +67,7 @@ func (s storageLocal) DownloadArtifactToStorage(uri string, id Identifier, accep
 
 	// Once we know the request (and response) was valid, we want to check for any status codes that were not whitelisted.
 	if resp != nil {
-		if !intExists(resp.StatusCode, acceptedStatusCodes) {
+		if !intExists(resp.StatusCode, codes) {
 			log.WithFields(log.Fields{"module": "storage", "action": "DownloadArtifactToStorage"}).Error("Could not download file : " + resp.Status)
 			return resp.StatusCode, err
 		}
@@ -106,8 +107,17 @@ func intExists(val int, arr []int) bool {
 
 // ServeFile : Requests that the storage serve the user with the artifact.
 func (s storageLocal) ServeFile(w http.ResponseWriter, r *http.Request, id Identifier) {
-	log.WithFields(log.Fields{"module": "storage", "action": "ServeFile"}).Debug(id.Key)
-	http.ServeFile(w, r, filepath.Join(s.Path, id.Key))
+
+	filename := filepath.Join(s.Path, id.Key)
+	file, err := s.FileSystem.Open(filename)
+	if err != nil {
+		log.WithFields(log.Fields{"module": "storage", "action": "ServeFile"}).Error("Could not get file at " + filename)
+		log.WithFields(log.Fields{"module": "storage", "action": "ServeFile"}).Error(err)
+	}
+	defer file.Close()
+
+	// Switched to ServeContent to support afero.
+	http.ServeContent(w, r, filename, time.Now(), file)
 }
 
 // GetArtifacts : Returns an array of Storage Identifiers by traversing the local storage filesystem.
@@ -128,4 +138,9 @@ func (s storageLocal) GetArtifacts() []Identifier {
 
 	log.WithFields(log.Fields{"module": "storage", "action": "GetArtifacts"}).Info(strconv.Itoa(len(fileList)) + " entities retrieved from storage (" + s.Path + ")")
 	return fileList
+}
+
+func (s storageLocal) SaveArtifact(w http.ResponseWriter, r *http.Request, id Identifier) {
+	filename := filepath.Join(s.Path, id.Key)
+	afero.WriteReader(s.FileSystem, filename, r.Body)
 }

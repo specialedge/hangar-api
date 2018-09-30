@@ -27,8 +27,16 @@ func TestAppendEndpoints(t *testing.T) {
 		w.WriteHeader(http.StatusCreated)
 	}
 
+	uploadSnapshotFunc := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusAccepted)
+	}
+
+	uploadSnapshotChecksumFunc := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNonAuthoritativeInfo)
+	}
+
 	r := mux.NewRouter()
-	javaEndpoints.AppendEndpoints(r, artifactFunc, checksumFunc)
+	javaEndpoints.AppendEndpoints(r, artifactFunc, checksumFunc, uploadSnapshotFunc, uploadSnapshotChecksumFunc)
 
 	// Should be picked up by artifactFunction
 	runRequest("/java/com/specialedge/hangar-api/1.2.3/hangar-api-1.2.3.jar", 200, r, t)
@@ -47,10 +55,24 @@ func TestAppendEndpoints(t *testing.T) {
 	runRequest("/java/com/specialedge/hangar-api/1.2.3/hangar-api-1.2.3.jar.fish", 404, r, t)
 	runRequest("/java/com/specialedge/hangar-api/1.2.3/hangar-api-1.2.3.jar.sha", 404, r, t)
 	runRequest("/java/com/specialedge/hangar-api/1.2.3/hangar-api-1.2.3.jar.sha1.fish", 404, r, t)
+
+	runUploadRequest("/java/snapshots/com/specialedge/hangar-api/1.2.3-SNAPSHOT/hangar-api-1.2.3-SNAPSHOT.jar", 202, r, t)
+	runUploadRequest("/java/snapshots/com/specialedge/hangar-api/1.2.3/hangar-api-1.2.3.jar", 405, r, t)
 }
 
 func runRequest(path string, codeExpected int, r *mux.Router, t *testing.T) {
 	req, _ := http.NewRequest("GET", path, nil)
+	res := httptest.NewRecorder()
+
+	r.ServeHTTP(res, req)
+
+	if res.Code != codeExpected {
+		t.Error("Expected "+strconv.Itoa(codeExpected)+"but got ", res.Code)
+	}
+}
+
+func runUploadRequest(path string, codeExpected int, r *mux.Router, t *testing.T) {
+	req, _ := http.NewRequest("PUT", path, nil)
 	res := httptest.NewRecorder()
 
 	r.ServeHTTP(res, req)
