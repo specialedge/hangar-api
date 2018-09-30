@@ -139,3 +139,8 @@ func (s storageLocal) GetArtifacts() []Identifier {
 	log.WithFields(log.Fields{"module": "storage", "action": "GetArtifacts"}).Info(strconv.Itoa(len(fileList)) + " entities retrieved from storage (" + s.Path + ")")
 	return fileList
 }
+
+func (s storageLocal) SaveArtifact(w http.ResponseWriter, r *http.Request, id Identifier) {
+	filename := filepath.Join(s.Path, id.Key)
+	afero.WriteReader(s.FileSystem, filename, r.Body)
+}
